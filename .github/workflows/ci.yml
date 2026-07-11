@@ -38,10 +38,12 @@ jobs:
             dependencies: lowest
             integration_shopware: "6.6.0.0"
             expected_core_version: "6.6.0.0"
+            allow_insecure_fixture: "1"
           - shopware: "~6.7.0"
             dependencies: current
             integration_shopware: "~6.7.0"
             expected_core_version: ""
+            allow_insecure_fixture: "0"
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -73,9 +75,14 @@ jobs:
       - name: Create Shopware integration project
         env:
           INTEGRATION_SHOPWARE_VERSION: ${{ matrix.integration_shopware }}
+          ALLOW_INSECURE_FIXTURE: ${{ matrix.allow_insecure_fixture }}
         run: |
-          composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" --no-interaction --no-progress --no-scripts
-          composer --working-dir="$SHOPWARE_PROJECT_ROOT" require --dev phpunit/phpunit:^11.0 --no-interaction --no-progress --no-scripts
+          fixture_flags=(--no-interaction --no-progress --no-scripts)
+          if [[ "$ALLOW_INSECURE_FIXTURE" == "1" ]]; then
+            fixture_flags+=(--no-blocking)
+          fi
+          composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"
+          composer --working-dir="$SHOPWARE_PROJECT_ROOT" require --dev phpunit/phpunit:^11.0 "${fixture_flags[@]}"
 
       - name: Run real Shopware integration
         env:

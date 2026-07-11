@@ -48,6 +48,8 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringContainsString('shopware: "~6.7.0"', $workflow);
         self::assertStringContainsString('integration_shopware: "6.6.0.0"', $workflow);
         self::assertStringContainsString('expected_core_version: "6.6.0.0"', $workflow);
+        self::assertStringContainsString('allow_insecure_fixture: "1"', $workflow);
+        self::assertStringContainsString('allow_insecure_fixture: "0"', $workflow);
         self::assertStringContainsString('flags+=(--prefer-lowest)', $workflow);
         self::assertStringContainsString('mariadb:', $workflow);
         self::assertStringContainsString(
@@ -55,12 +57,18 @@ final class ReleaseToolingTest extends TestCase
             $workflow,
         );
         self::assertStringContainsString(
-            'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION"',
+            'if [[ "$ALLOW_INSECURE_FIXTURE" == "1" ]]',
+            $workflow,
+        );
+        self::assertStringContainsString('fixture_flags+=(--no-blocking)', $workflow);
+        self::assertStringContainsString(
+            'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"',
             $workflow,
         );
         self::assertStringContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
         self::assertStringContainsString('run: bin/integration', $workflow);
+        self::assertStringNotContainsString('COMPOSER_NO_BLOCKING:', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ github.workspace }}', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}', $workflow);
 
