@@ -85,8 +85,14 @@ final class ReleaseToolingTest extends TestCase
 
         $integrationRunner = (string) file_get_contents($this->projectRoot . '/bin/integration');
         self::assertStringContainsString('SKYY_PHPUNIT_BINARY', $integrationRunner);
+        self::assertStringContainsString('SKYY_PLUGIN_RUNTIME_ROOT', $integrationRunner);
+        self::assertStringContainsString('"$ROOT/bin/package"', $integrationRunner);
         self::assertStringContainsString('$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit', $integrationRunner);
         self::assertStringNotContainsString('$ROOT/vendor/bin/phpunit', $integrationRunner);
+
+        $integrationBootstrap = (string) file_get_contents($this->projectRoot . '/tests/Integration/bootstrap.php');
+        self::assertStringContainsString('SKYY_PLUGIN_RUNTIME_ROOT', $integrationBootstrap);
+        self::assertStringContainsString('$runtimePluginRoot . \'/src\'', $integrationBootstrap);
     }
 
     public function testCheckUsesNormalComposerPublishValidation(): void

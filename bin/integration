@@ -17,6 +17,10 @@ PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-1G}
 PHPUNIT=${SKYY_PHPUNIT_BINARY:-"$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit"}
 PLUGIN_PARENT="$SHOPWARE_PROJECT_ROOT/custom/plugins"
 PLUGIN_LINK="$PLUGIN_PARENT/SkyyMailTemplateSync"
+PACKAGE_ARCHIVE="$ROOT/build/SkyyMailTemplateSync-0.1.0.zip"
+STAGING=$(mktemp -d)
+STAGING=$(cd "$STAGING" && pwd -P)
+PLUGIN_SOURCE="$STAGING/SkyyMailTemplateSync"
 
 if [[ ! -f "$PHPUNIT" ]]; then
     printf 'Integration PHPUnit executable not found: %s\n' "$PHPUNIT" >&2
@@ -36,7 +40,7 @@ cleanup() {
     if [[ "$created_link" -eq 1 ]]; then
         if [[ -L "$PLUGIN_LINK" ]]; then
             target=$(cd "$PLUGIN_LINK" 2>/dev/null && pwd -P) || true
-            if [[ "$target" == "$ROOT" ]]; then
+            if [[ "$target" == "$PLUGIN_SOURCE" ]]; then
                 rm -f "$PLUGIN_LINK"
             else
                 printf 'Refusing to remove changed integration symlink: %s\n' "$PLUGIN_LINK" >&2
@@ -55,6 +59,8 @@ cleanup() {
         rmdir "$SHOPWARE_PROJECT_ROOT/custom" 2>/dev/null || true
     fi
 
+    rm -rf "$STAGING"
+
     exit "$status"
 }
 
@@ -62,6 +68,13 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
+
+"$ROOT/bin/package"
+unzip -q "$PACKAGE_ARCHIVE" -d "$STAGING"
+if [[ ! -f "$PLUGIN_SOURCE/src/SkyyMailTemplateSync.php" ]]; then
+    printf 'Packaged plugin entry point not found: %s\n' "$PLUGIN_SOURCE/src/SkyyMailTemplateSync.php" >&2
+    exit 1
+fi
 
 if [[ ! -e "$SHOPWARE_PROJECT_ROOT/custom" ]]; then
     mkdir "$SHOPWARE_PROJECT_ROOT/custom"
@@ -72,21 +85,16 @@ if [[ ! -e "$PLUGIN_PARENT" ]]; then
     created_plugins=1
 fi
 
-if [[ -L "$PLUGIN_LINK" ]]; then
-    existing_target=$(cd "$PLUGIN_LINK" 2>/dev/null && pwd -P) || existing_target=''
-    if [[ "$existing_target" != "$ROOT" ]]; then
-        printf 'Plugin discovery path is occupied by an unrelated target: %s\n' "$PLUGIN_LINK" >&2
-        exit 1
-    fi
-elif [[ -e "$PLUGIN_LINK" ]]; then
-    printf 'Plugin discovery path is occupied by an unrelated target: %s\n' "$PLUGIN_LINK" >&2
+if [[ -e "$PLUGIN_LINK" || -L "$PLUGIN_LINK" ]]; then
+    printf 'Plugin discovery path is already occupied: %s\n' "$PLUGIN_LINK" >&2
     exit 1
 else
-    ln -s "$ROOT" "$PLUGIN_LINK"
+    ln -s "$PLUGIN_SOURCE" "$PLUGIN_LINK"
     created_link=1
 fi
 
 export SHOPWARE_PROJECT_ROOT
+export SKYY_PLUGIN_RUNTIME_ROOT="$PLUGIN_SOURCE"
 
 "$PHP_BINARY" \
     -d "memory_limit=$PHP_MEMORY_LIMIT" \

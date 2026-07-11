@@ -34,7 +34,7 @@ final class IntegrationRunnerTest extends TestCase
         $this->removeDirectory($this->temporaryRoot);
     }
 
-    public function testCreatesDiscoverableSymlinkAndRemovesDirectoriesItCreated(): void
+    public function testCreatesDiscoverablePackagedRuntimeAndRemovesDirectoriesItCreated(): void
     {
         $process = $this->runnerProcess(0);
 
@@ -66,12 +66,12 @@ final class IntegrationRunnerTest extends TestCase
         $process->run();
 
         self::assertFalse($process->isSuccessful());
-        self::assertStringContainsString('occupied by an unrelated target', $process->getErrorOutput());
+        self::assertStringContainsString('already occupied', $process->getErrorOutput());
         self::assertFileExists($this->pluginLink() . '/sentinel');
         self::assertFileDoesNotExist($this->temporaryRoot . '/child-ran');
     }
 
-    public function testLeavesPreExistingSymlinkToThisPluginUntouched(): void
+    public function testRejectsAndPreservesPreExistingSourceSymlink(): void
     {
         mkdir(dirname($this->pluginLink()), 0777, true);
         symlink($this->pluginRoot, $this->pluginLink());
@@ -79,9 +79,11 @@ final class IntegrationRunnerTest extends TestCase
 
         $process->run();
 
-        self::assertTrue($process->isSuccessful(), $process->getErrorOutput());
+        self::assertFalse($process->isSuccessful());
+        self::assertStringContainsString('already occupied', $process->getErrorOutput());
         self::assertTrue(is_link($this->pluginLink()));
         self::assertSame($this->pluginRoot, (string) realpath($this->pluginLink()));
+        self::assertFileDoesNotExist($this->temporaryRoot . '/child-ran');
     }
 
     private function runnerProcess(int $childExitCode): Process
@@ -95,7 +97,9 @@ final class IntegrationRunnerTest extends TestCase
             set -euo pipefail
             link="$SHOPWARE_PROJECT_ROOT/custom/plugins/SkyyMailTemplateSync"
             [[ -L "$link" ]]
-            [[ "$(realpath "$link")" == "$EXPECTED_PLUGIN_ROOT" ]]
+            [[ "$(realpath "$link")" == "$(realpath "$SKYY_PLUGIN_RUNTIME_ROOT")" ]]
+            [[ "$(realpath "$link")" != "$(realpath "$SOURCE_PLUGIN_ROOT")" ]]
+            [[ ! -e "$SKYY_PLUGIN_RUNTIME_ROOT/vendor" ]]
             touch "$FAKE_MARKER"
             exit "$FAKE_EXIT_CODE"
             BASH);
@@ -103,11 +107,11 @@ final class IntegrationRunnerTest extends TestCase
 
         return new Process([$runner], $this->pluginRoot, [
             'DATABASE_URL' => 'mysql://root@127.0.0.1:33307/skyy_mail_sync',
-            'EXPECTED_PLUGIN_ROOT' => $this->pluginRoot,
             'FAKE_EXIT_CODE' => (string) $childExitCode,
             'FAKE_MARKER' => $this->temporaryRoot . '/child-ran',
             'SHOPWARE_PROJECT_ROOT' => $this->shopwareRoot,
             'SKYY_PHP_BINARY' => $fakePhp,
+            'SOURCE_PLUGIN_ROOT' => $this->pluginRoot,
         ]);
     }
 
