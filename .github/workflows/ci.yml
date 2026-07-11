@@ -17,7 +17,6 @@ jobs:
       APP_ENV: test
       DATABASE_URL: mysql://root:root@127.0.0.1:3306/skyy_mail_sync
       KERNEL_CLASS: Shopware\Core\Kernel
-      SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}/shopware
     services:
       mariadb:
         image: mariadb:11.4
@@ -53,6 +52,9 @@ jobs:
           coverage: none
           extensions: curl, dom, fileinfo, gd, intl, mbstring, pdo_mysql, simplexml, xml, zip
           tools: composer:v2
+
+      - name: Configure integration project path
+        run: echo "SHOPWARE_PROJECT_ROOT=$RUNNER_TEMP/shopware" >> "$GITHUB_ENV"
 
       - name: Install dependency matrix
         env:

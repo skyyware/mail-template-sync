@@ -5,6 +5,10 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT"
 
+if command -v actionlint >/dev/null 2>&1; then
+    actionlint .github/workflows/ci.yml
+fi
+
 composer validate --strict
 vendor/bin/phpunit
 vendor/bin/phpstan analyse --no-progress --memory-limit=1G

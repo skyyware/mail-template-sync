@@ -50,7 +50,10 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringContainsString('expected_core_version: "6.6.0.0"', $workflow);
         self::assertStringContainsString('flags+=(--prefer-lowest)', $workflow);
         self::assertStringContainsString('mariadb:', $workflow);
-        self::assertStringContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}/shopware', $workflow);
+        self::assertStringContainsString(
+            'echo "SHOPWARE_PROJECT_ROOT=$RUNNER_TEMP/shopware" >> "$GITHUB_ENV"',
+            $workflow,
+        );
         self::assertStringContainsString(
             'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION"',
             $workflow,
@@ -59,6 +62,7 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
         self::assertStringContainsString('run: bin/integration', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ github.workspace }}', $workflow);
+        self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}', $workflow);
 
         $integrationTest = (string) file_get_contents(
             $this->projectRoot . '/tests/Integration/ShopwareIntegrationTest.php',
