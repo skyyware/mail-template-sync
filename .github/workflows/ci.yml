@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Shopware ${{ matrix.shopware }} (${{ matrix.dependencies }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_DEBUG: "1"
+      APP_ENV: test
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/skyy_mail_sync
+      KERNEL_CLASS: Shopware\Core\Kernel
+      SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}/shopware
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: skyy_mail_sync_test
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping --host=127.0.0.1 --password=root"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shopware: "~6.6.0"
+            dependencies: lowest
+            integration_shopware: "6.6.0.0"
+            expected_core_version: "6.6.0.0"
+          - shopware: "~6.7.0"
+            dependencies: current
+            integration_shopware: "~6.7.0"
+            expected_core_version: ""
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: "8.2"
+          coverage: none
+          extensions: curl, dom, fileinfo, gd, intl, mbstring, pdo_mysql, simplexml, xml, zip
+          tools: composer:v2
+
+      - name: Install dependency matrix
+        env:
+          SHOPWARE_VERSION: ${{ matrix.shopware }}
+          DEPENDENCIES: ${{ matrix.dependencies }}
+        run: |
+          flags=(--no-interaction --no-progress --with-all-dependencies)
+          if [[ "$DEPENDENCIES" == "lowest" ]]; then
+            flags+=(--prefer-lowest)
+          fi
+          composer update "shopware/core:$SHOPWARE_VERSION" "${flags[@]}"
+
+      - name: Run unit and release gates
+        run: bin/check
+
+      - name: Create Shopware integration project
+        env:
+          INTEGRATION_SHOPWARE_VERSION: ${{ matrix.integration_shopware }}
+        run: |
+          composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" --no-interaction --no-progress --no-scripts
+          composer --working-dir="$SHOPWARE_PROJECT_ROOT" require --dev phpunit/phpunit:^11.0 --no-interaction --no-progress --no-scripts
+
+      - name: Run real Shopware integration
+        env:
+          EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}
+        run: bin/integration
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: SkyyMailTemplateSync-${{ matrix.dependencies }}
+          path: build/SkyyMailTemplateSync-0.1.0.zip
+          if-no-files-found: error

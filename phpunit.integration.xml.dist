@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/Integration/bootstrap.php" colors="true" cacheResult="false">
+    <php>
+        <env name="APP_ENV" value="test" force="true" />
+        <env name="APP_DEBUG" value="1" force="true" />
+        <env name="KERNEL_CLASS" value="Shopware\Core\Kernel" force="true" />
+    </php>
+    <testsuites>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

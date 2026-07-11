@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+PACKAGE_NAME=SkyyMailTemplateSync
+VERSION=${VERSION:-0.1.0}
+BUILD_DIR="$ROOT/build"
+ARCHIVE="$BUILD_DIR/$PACKAGE_NAME-$VERSION.zip"
+STAGING=$(mktemp -d)
+
+cleanup() {
+    rm -rf "$STAGING"
+}
+trap cleanup EXIT
+
+mkdir -p "$BUILD_DIR" "$STAGING/$PACKAGE_NAME"
+
+for path in composer.json LICENSE README.md CHANGELOG.md SECURITY.md src; do
+    cp -R "$ROOT/$path" "$STAGING/$PACKAGE_NAME/"
+done
+
+rm -f "$ARCHIVE"
+(
+    cd "$STAGING"
+    zip -X -q -r "$ARCHIVE" "$PACKAGE_NAME"
+)
+
+entries=$(unzip -Z1 "$ARCHIVE")
+while IFS= read -r entry; do
+    case "$entry" in
+        "$PACKAGE_NAME"/*) ;;
+        *)
+            printf 'Package entry is outside %s/: %s\n' "$PACKAGE_NAME" "$entry" >&2
+            exit 1
+            ;;
+    esac
+
+    case "$entry" in
+        */tests/*|*/vendor/*|*/bin/*|*/build/*|*/.git*|*/.github/*|*/.superpowers/*|*/composer.lock|*/phpunit.xml*|*/phpstan.neon|*/.php-cs-fixer*|*/.phpunit*|*/CONTRIBUTING.md)
+            printf 'Development-only package entry found: %s\n' "$entry" >&2
+            exit 1
+            ;;
+    esac
+done <<< "$entries"
+
+unzip -tq "$ARCHIVE" >/dev/null
+grep -qx "$PACKAGE_NAME/composer.json" <<< "$entries"
+grep -qx "$PACKAGE_NAME/src/SkyyMailTemplateSync.php" <<< "$entries"
+grep -qx "$PACKAGE_NAME/src/Exception/SyncException.php" <<< "$entries"
+
+printf 'Created %s\n' "$ARCHIVE"

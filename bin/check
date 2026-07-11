@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$ROOT"
+
+composer validate --strict
+vendor/bin/phpunit
+vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+git diff --check
+bin/package

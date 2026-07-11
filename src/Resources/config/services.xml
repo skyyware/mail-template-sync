@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Skyyware\SkyyMailTemplateSync\Repository\ShopwareMailTemplateRepository">
+            <argument type="service" id="mail_template.repository" />
+            <argument type="service" id="language.repository" />
+            <argument type="service" id="Doctrine\DBAL\Connection" />
+        </service>
+
+        <service id="Skyyware\SkyyMailTemplateSync\Repository\MailTemplateRepositoryInterface"
+                 alias="Skyyware\SkyyMailTemplateSync\Repository\ShopwareMailTemplateRepository" />
+
+        <service id="Skyyware\SkyyMailTemplateSync\Storage\FilesystemTemplateStorage" />
+
+        <service id="Skyyware\SkyyMailTemplateSync\Storage\TemplateStorageInterface"
+                 alias="Skyyware\SkyyMailTemplateSync\Storage\FilesystemTemplateStorage" />
+
+        <service id="Skyyware\SkyyMailTemplateSync\Storage\StorageDirectoryResolver">
+            <argument>%kernel.project_dir%</argument>
+        </service>
+
+        <service id="Skyyware\SkyyMailTemplateSync\Service\MailTemplateDiffer" />
+
+        <service id="Skyyware\SkyyMailTemplateSync\Service\BackupManager">
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Storage\TemplateStorageInterface" />
+            <argument>%kernel.project_dir%</argument>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
+        </service>
+
+        <service id="Skyyware\SkyyMailTemplateSync\Service\MailTemplateSyncService">
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Repository\MailTemplateRepositoryInterface" />
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Storage\TemplateStorageInterface" />
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Service\MailTemplateDiffer" />
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Service\BackupManager" />
+            <argument type="service" id="Doctrine\DBAL\Connection" />
+        </service>
+
+        <service id="Skyyware\SkyyMailTemplateSync\Command\ExportMailTemplatesCommand">
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Service\MailTemplateSyncService" />
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Storage\StorageDirectoryResolver" />
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
+            <tag name="console.command" />
+        </service>
+
+        <service id="Skyyware\SkyyMailTemplateSync\Command\ImportMailTemplatesCommand">
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Service\MailTemplateSyncService" />
+            <argument type="service" id="Skyyware\SkyyMailTemplateSync\Storage\StorageDirectoryResolver" />
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
+            <tag name="console.command" />
+        </service>
+    </services>
+</container>

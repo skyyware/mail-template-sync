@@ -1,0 +1,13 @@
+/.phpunit.cache/
+/.phpunit.result.cache
+/.php-cs-fixer.cache
+/vendor/
+/build/
+/artifacts/
+/reports/
+/scratch/
+/var/
+/.superpowers/
+
+.idea/
+.vscode/
