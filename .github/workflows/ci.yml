@@ -53,7 +53,7 @@ jobs:
           php-version: "8.2"
           coverage: none
           extensions: curl, dom, fileinfo, gd, intl, mbstring, pdo_mysql, simplexml, xml, zip
-          tools: composer:v2
+          tools: composer:v2, phpunit:11
 
       - name: Configure integration project path
         run: echo "SHOPWARE_PROJECT_ROOT=$RUNNER_TEMP/shopware" >> "$GITHUB_ENV"
@@ -88,7 +88,9 @@ jobs:
           EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}
         run: |
           mkdir -p "$RUNNER_TEMP/shopware-composer-home"
-          COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" bin/integration
+          SKYY_PHPUNIT_BINARY="$(command -v phpunit)" \
+            COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" \
+            bin/integration
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

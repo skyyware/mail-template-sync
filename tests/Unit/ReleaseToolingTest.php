@@ -61,6 +61,7 @@ final class ReleaseToolingTest extends TestCase
             $workflow,
         );
         self::assertStringContainsString('fixture_flags+=(--no-blocking)', $workflow);
+        self::assertStringContainsString('tools: composer:v2, phpunit:11', $workflow);
         self::assertStringContainsString(
             'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"',
             $workflow,
@@ -68,9 +69,10 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringNotContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
         self::assertStringContainsString(
-            'COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" bin/integration',
+            'SKYY_PHPUNIT_BINARY="$(command -v phpunit)"',
             $workflow,
         );
+        self::assertStringContainsString('COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home"', $workflow);
         self::assertStringNotContainsString('COMPOSER_NO_BLOCKING:', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ github.workspace }}', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}', $workflow);
@@ -82,8 +84,9 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION', $integrationTest);
 
         $integrationRunner = (string) file_get_contents($this->projectRoot . '/bin/integration');
-        self::assertStringContainsString('PHPUNIT="$ROOT/vendor/bin/phpunit"', $integrationRunner);
-        self::assertStringNotContainsString('$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit', $integrationRunner);
+        self::assertStringContainsString('SKYY_PHPUNIT_BINARY', $integrationRunner);
+        self::assertStringContainsString('$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit', $integrationRunner);
+        self::assertStringNotContainsString('$ROOT/vendor/bin/phpunit', $integrationRunner);
     }
 
     public function testCheckUsesNormalComposerPublishValidation(): void
