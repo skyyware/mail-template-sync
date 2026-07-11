@@ -14,12 +14,12 @@ fi
 SHOPWARE_PROJECT_ROOT=$(cd "$SHOPWARE_PROJECT_ROOT" && pwd -P)
 PHP_BINARY=${SKYY_PHP_BINARY:-php}
 PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-1G}
-PHPUNIT="$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit"
+PHPUNIT="$ROOT/vendor/bin/phpunit"
 PLUGIN_PARENT="$SHOPWARE_PROJECT_ROOT/custom/plugins"
 PLUGIN_LINK="$PLUGIN_PARENT/SkyyMailTemplateSync"
 
 if [[ ! -f "$PHPUNIT" ]]; then
-    printf 'Shopware PHPUnit executable not found: %s\n' "$PHPUNIT" >&2
+    printf 'Plugin PHPUnit executable not found: %s\n' "$PHPUNIT" >&2
     exit 1
 fi
 

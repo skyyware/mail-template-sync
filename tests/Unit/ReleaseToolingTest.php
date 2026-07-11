@@ -65,7 +65,7 @@ final class ReleaseToolingTest extends TestCase
             'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"',
             $workflow,
         );
-        self::assertStringContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
+        self::assertStringNotContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
         self::assertStringContainsString(
             'COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" bin/integration',
@@ -80,6 +80,10 @@ final class ReleaseToolingTest extends TestCase
         );
         self::assertStringContainsString('InstalledVersions::getPrettyVersion', $integrationTest);
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION', $integrationTest);
+
+        $integrationRunner = (string) file_get_contents($this->projectRoot . '/bin/integration');
+        self::assertStringContainsString('PHPUNIT="$ROOT/vendor/bin/phpunit"', $integrationRunner);
+        self::assertStringNotContainsString('$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit', $integrationRunner);
     }
 
     public function testCheckUsesNormalComposerPublishValidation(): void

@@ -82,7 +82,6 @@ jobs:
             fixture_flags+=(--no-blocking)
           fi
           composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"
-          composer --working-dir="$SHOPWARE_PROJECT_ROOT" require --dev phpunit/phpunit:^11.0 "${fixture_flags[@]}"
 
       - name: Run real Shopware integration
         env:
