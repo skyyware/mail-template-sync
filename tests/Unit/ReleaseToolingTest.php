@@ -67,7 +67,10 @@ final class ReleaseToolingTest extends TestCase
         );
         self::assertStringContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
         self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
-        self::assertStringContainsString('run: bin/integration', $workflow);
+        self::assertStringContainsString(
+            'COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" bin/integration',
+            $workflow,
+        );
         self::assertStringNotContainsString('COMPOSER_NO_BLOCKING:', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ github.workspace }}', $workflow);
         self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}', $workflow);

@@ -87,7 +87,9 @@ jobs:
       - name: Run real Shopware integration
         env:
           EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}
-        run: bin/integration
+        run: |
+          mkdir -p "$RUNNER_TEMP/shopware-composer-home"
+          COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home" bin/integration
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
