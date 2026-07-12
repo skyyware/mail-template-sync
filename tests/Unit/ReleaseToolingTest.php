@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Skyyware\SkyyMailTemplateSync\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use ZipArchive;
 
 final class ReleaseToolingTest extends TestCase
 {
@@ -112,6 +113,29 @@ final class ReleaseToolingTest extends TestCase
         self::assertStringContainsString('/reports/', $gitignore);
         self::assertStringContainsString('/scratch/', $gitignore);
         self::assertStringContainsString('/.superpowers/', $gitignore);
+    }
+
+    public function testPackagedComposerMetadataCarriesTheReleaseVersion(): void
+    {
+        $output = [];
+        $exitCode = 1;
+        exec(
+            'VERSION=0.1.1 ' . escapeshellarg($this->projectRoot . '/bin/package') . ' 2>&1',
+            $output,
+            $exitCode,
+        );
+        self::assertSame(0, $exitCode, implode("\n", $output));
+
+        $archive = new ZipArchive();
+        self::assertTrue(
+            $archive->open($this->projectRoot . '/build/SkyyMailTemplateSync-0.1.1.zip') === true,
+        );
+        $composerJson = $archive->getFromName('SkyyMailTemplateSync/composer.json');
+        $archive->close();
+        self::assertIsString($composerJson);
+
+        $metadata = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('0.1.1', $metadata['version'] ?? null);
     }
 
     public function testReadmeDocumentsFiveFileLayoutAndNullableMetadata(): void

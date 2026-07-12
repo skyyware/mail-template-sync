@@ -98,7 +98,7 @@ bin/check
 
 `bin/check` validates Composer metadata, runs unit tests, PHPStan, the style
 check, Git whitespace checks, and package verification. `bin/package` creates
-`build/SkyyMailTemplateSync-0.1.0.zip` with a single
+`build/SkyyMailTemplateSync-0.1.1.zip` with a single
 `SkyyMailTemplateSync/` root and no development-only files.
 
 Run the real Shopware container and DAL transaction tests against an isolated

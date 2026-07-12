@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 PACKAGE_NAME=SkyyMailTemplateSync
-VERSION=${VERSION:-0.1.0}
+VERSION=${VERSION:-0.1.1}
 BUILD_DIR="$ROOT/build"
 ARCHIVE="$BUILD_DIR/$PACKAGE_NAME-$VERSION.zip"
 STAGING=$(mktemp -d)
@@ -19,6 +19,9 @@ mkdir -p "$BUILD_DIR" "$STAGING/$PACKAGE_NAME"
 for path in composer.json LICENSE README.md CHANGELOG.md SECURITY.md src; do
     cp -R "$ROOT/$path" "$STAGING/$PACKAGE_NAME/"
 done
+
+COMPOSER_ROOT_VERSION="$VERSION" \
+    composer --working-dir="$STAGING/$PACKAGE_NAME" config version "$VERSION" --no-interaction
 
 rm -f "$ARCHIVE"
 (
@@ -48,5 +51,16 @@ unzip -tq "$ARCHIVE" >/dev/null
 grep -qx "$PACKAGE_NAME/composer.json" <<< "$entries"
 grep -qx "$PACKAGE_NAME/src/SkyyMailTemplateSync.php" <<< "$entries"
 grep -qx "$PACKAGE_NAME/src/Exception/SyncException.php" <<< "$entries"
+
+# The embedded PHP is intentionally single-quoted so the shell cannot expand it.
+# shellcheck disable=SC2016
+packaged_version=$(unzip -p "$ARCHIVE" "$PACKAGE_NAME/composer.json" | php -r '
+    $metadata = json_decode(stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
+    fwrite(STDOUT, (string) ($metadata["version"] ?? ""));
+')
+if [[ "$packaged_version" != "$VERSION" ]]; then
+    printf 'Package version mismatch: expected %s, got %s\n' "$VERSION" "$packaged_version" >&2
+    exit 1
+fi
 
 printf 'Created %s\n' "$ARCHIVE"

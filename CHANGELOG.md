@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.1 - 2026-07-12
+
+- Preserve the release version inside clean ZIP packages so direct Shopware
+  installations report the same version as the Git tag.
+
 ## 0.1.0 - 2026-07-11
 
 - Add portable filesystem export and merge-oriented import for Shopware mail

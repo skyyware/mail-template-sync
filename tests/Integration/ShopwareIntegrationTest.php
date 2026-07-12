@@ -15,6 +15,8 @@ use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\Plugin\PluginCollection;
 use Shopware\Core\Framework\Test\TestCaseBase\KernelTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\Language\LanguageCollection;
@@ -408,6 +410,19 @@ final class ShopwareIntegrationTest extends MailTemplateDalIntegrationTest
         $application = new Application(self::getKernel());
         self::assertTrue($application->has('skyy:mail-template:export'));
         self::assertTrue($application->has('skyy:mail-template:import'));
+    }
+
+    public function testPackagedPluginInstallsWithReleaseVersion(): void
+    {
+        /** @var EntityRepository<PluginCollection> $repository */
+        $repository = self::getContainer()->get('plugin.repository');
+        $plugin = $repository->search(
+            (new Criteria())->addFilter(new EqualsFilter('name', 'SkyyMailTemplateSync')),
+            Context::createDefaultContext(),
+        )->first();
+
+        self::assertNotNull($plugin);
+        self::assertSame('0.1.1', $plugin->getVersion());
     }
 }
 
