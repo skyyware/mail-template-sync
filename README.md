@@ -11,18 +11,12 @@ for Shopware 6.6, but receives no further fixes. Existing tags are never changed
 
 ## Installation
 
-Install with Composer once the package is listed on Packagist:
+Install with Composer:
 
 ```console
 composer require skyyware/mail-template-sync:^0.2
 bin/console plugin:refresh
 bin/console plugin:install --activate SkyyMailTemplateSync
-```
-
-Until then, add its public repository before the Composer command:
-
-```console
-composer config repositories.skyy-mail-template-sync vcs https://github.com/skyyware/mail-template-sync
 ```
 
 You can also install the packaged ZIP through the Shopware extension manager, or place the
@@ -141,6 +135,9 @@ removes only a symlink it created.
 
 Release checks run locally against the current stable Shopware 6.7 release
 on PHP 8.2 and 8.4. GitHub Actions is disabled.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the fork-and-pull-request workflow
+and [SECURITY.md](SECURITY.md) for private vulnerability reporting.
 
 ## License
 
