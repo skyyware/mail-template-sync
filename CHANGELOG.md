@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.2.0 - 2026-10-01
+
+- Support Shopware 6.7 only. Use `0.1.1` for existing Shopware 6.6 projects.
+- Update development dependencies for Shopware 6.7.15.0.
+- Read DAL entities through the collection API instead of deprecated search
+  result collection methods.
+- Run dependency audits with the local release checks and remove obsolete CI
+  assumptions from the tests.
+
 ## 0.1.1 - 2026-07-12
 
 - Preserve the release version inside clean ZIP packages so direct Shopware

@@ -38,7 +38,7 @@ final readonly class ShopwareMailTemplateRepository implements MailTemplateRepos
             ->addAssociation('mailTemplateType');
 
         $technicalNames = [];
-        foreach ($this->mailTemplateRepository->search($criteria, $context) as $entity) {
+        foreach ($this->mailTemplateRepository->search($criteria, $context)->getEntities() as $entity) {
             if ($entity->getMailTemplateType() === null) {
                 throw new SyncException('A system-default mail template has no loaded mail template type.');
             }
@@ -145,7 +145,7 @@ final readonly class ShopwareMailTemplateRepository implements MailTemplateRepos
             $criteria->addAssociation('translations.language.locale');
         }
 
-        $entity = $this->mailTemplateRepository->search($criteria, $context)->first();
+        $entity = $this->mailTemplateRepository->search($criteria, $context)->getEntities()->first();
         if (!$entity instanceof MailTemplateEntity) {
             throw new SyncException(sprintf('No system-default mail template exists for "%s".', $technicalName));
         }

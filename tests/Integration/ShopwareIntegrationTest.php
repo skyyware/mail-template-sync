@@ -422,7 +422,7 @@ final class ShopwareIntegrationTest extends MailTemplateDalIntegrationTest
         )->first();
 
         self::assertNotNull($plugin);
-        self::assertSame('0.1.1', $plugin->getVersion());
+        self::assertSame(getenv('VERSION') ?: '0.2.0', $plugin->getVersion());
     }
 }
 

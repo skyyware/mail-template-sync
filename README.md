@@ -1,11 +1,31 @@
 # Skyy Mail Template Sync
 
 Skyy Mail Template Sync keeps Shopware mail templates in portable, reviewable
-files. It supports Shopware 6.6 and 6.7 on PHP 8.2 or newer.
+files. It supports Shopware 6.7 on PHP 8.2 or newer.
+
+## Compatibility
+
+New releases support the current stable Shopware major line only, currently
+6.7. Version `0.2.x` requires Shopware 6.7. Version `0.1.1` remains available
+for Shopware 6.6, but receives no further fixes. Existing tags are never changed.
 
 ## Installation
 
-Install the packaged ZIP through the Shopware extension manager, or place the
+Install with Composer once the package is listed on Packagist:
+
+```console
+composer require skyyware/mail-template-sync:^0.2
+bin/console plugin:refresh
+bin/console plugin:install --activate SkyyMailTemplateSync
+```
+
+Until then, add its public repository before the Composer command:
+
+```console
+composer config repositories.skyy-mail-template-sync vcs https://github.com/skyyware/mail-template-sync
+```
+
+You can also install the packaged ZIP through the Shopware extension manager, or place the
 plugin in `custom/plugins/SkyyMailTemplateSync`. Then refresh, install, and
 activate it with the normal Shopware plugin lifecycle.
 
@@ -87,6 +107,11 @@ Export is authoritative and removes stale locale directories. Import is
 merge-oriented and leaves Shopware-only locales intact. Bulk import rejects
 missing, empty, or malformed roots instead of silently processing zero bundles.
 
+## Uninstall
+
+Uninstalling removes the plugin settings. Exported templates and backups remain
+on disk, including when you uninstall with `--keep-user-data`.
+
 ## Development
 
 Install dependencies and run every local quality gate:
@@ -98,7 +123,7 @@ bin/check
 
 `bin/check` validates Composer metadata, runs unit tests, PHPStan, the style
 check, Git whitespace checks, and package verification. `bin/package` creates
-`build/SkyyMailTemplateSync-0.1.1.zip` with a single
+`build/SkyyMailTemplateSync-0.2.0.zip` with a single
 `SkyyMailTemplateSync/` root and no development-only files.
 
 Run the real Shopware container and DAL transaction tests against an isolated
@@ -113,6 +138,9 @@ bin/integration
 The runner temporarily exposes this checkout at
 `custom/plugins/SkyyMailTemplateSync`, refuses unrelated occupied targets, and
 removes only a symlink it created.
+
+Release checks run locally against the current stable Shopware 6.7 release
+on PHP 8.2 and 8.4. GitHub Actions is disabled.
 
 ## License
 

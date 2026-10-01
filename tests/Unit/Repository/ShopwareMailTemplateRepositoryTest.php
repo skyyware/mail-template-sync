@@ -481,6 +481,8 @@ final class ShopwareMailTemplateRepositoryTest extends TestCase
      */
     private function searchResult(EntityCollection $entities): EntitySearchResult
     {
-        return new EntitySearchResult('test', $entities->count(), $entities, null, new Criteria(), $this->context);
+        $entity = $entities instanceof LanguageCollection ? 'language' : 'mail_template';
+
+        return new EntitySearchResult($entity, $entities->count(), $entities, null, new Criteria(), $this->context);
     }
 }

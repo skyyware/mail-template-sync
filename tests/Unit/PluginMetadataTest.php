@@ -23,7 +23,7 @@ final class PluginMetadataTest extends TestCase
         self::assertSame('skyyware/mail-template-sync', $composer['name']);
         self::assertSame('shopware-platform-plugin', $composer['type']);
         self::assertSame('MIT', $composer['license']);
-        self::assertSame('~6.6.0 || ~6.7.0', $composer['require']['shopware/core']);
+        self::assertSame('~6.7.0', $composer['require']['shopware/core']);
         self::assertSame(
             'Skyyware\\SkyyMailTemplateSync\\SkyyMailTemplateSync',
             $composer['extra']['shopware-plugin-class'],

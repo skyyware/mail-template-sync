@@ -16,6 +16,26 @@ final class ReleaseToolingTest extends TestCase
         $this->projectRoot = dirname(__DIR__, 2);
     }
 
+    public function testComposerAllowsOnlyTheCurrentShopwareReleaseLine(): void
+    {
+        $metadata = json_decode(
+            (string) file_get_contents($this->projectRoot . '/composer.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        foreach ($metadata['require'] as $package => $constraint) {
+            if (!str_starts_with($package, 'shopware/')) {
+                continue;
+            }
+
+            self::assertTrue(\Composer\Semver\Semver::satisfies('6.7.15.0', $constraint));
+            self::assertFalse(\Composer\Semver\Semver::satisfies('6.6.10.27', $constraint));
+            self::assertFalse(\Composer\Semver\Semver::satisfies('6.8.0.0', $constraint));
+        }
+    }
+
     public function testShopwareTranslatableLinksUseLocaleMaps(): void
     {
         $composer = json_decode(
@@ -33,67 +53,6 @@ final class ReleaseToolingTest extends TestCase
             'en-GB' => 'https://www.skyyware.com/contact/',
             'de-DE' => 'https://www.skyyware.com/contact/',
         ], $composer['extra']['supportLink']);
-    }
-
-    public function testCiPinsActionsAndRunsRealIntegrationForBothShopwareLanes(): void
-    {
-        $workflow = (string) file_get_contents($this->projectRoot . '/.github/workflows/ci.yml');
-        preg_match_all('/^\s*-\s+uses:\s+[^@\s]+@([^\s#]+)/m', $workflow, $matches);
-
-        self::assertNotEmpty($matches[1]);
-        foreach ($matches[1] as $reference) {
-            self::assertMatchesRegularExpression('/^[0-9a-f]{40}$/', $reference);
-        }
-
-        self::assertStringContainsString('shopware: "~6.6.0"', $workflow);
-        self::assertStringContainsString('shopware: "~6.7.0"', $workflow);
-        self::assertStringContainsString('integration_shopware: "6.6.0.0"', $workflow);
-        self::assertStringContainsString('expected_core_version: "6.6.0.0"', $workflow);
-        self::assertStringContainsString('allow_insecure_fixture: "1"', $workflow);
-        self::assertStringContainsString('allow_insecure_fixture: "0"', $workflow);
-        self::assertStringContainsString('flags+=(--prefer-lowest)', $workflow);
-        self::assertStringContainsString('mariadb:', $workflow);
-        self::assertStringContainsString(
-            'echo "SHOPWARE_PROJECT_ROOT=$RUNNER_TEMP/shopware" >> "$GITHUB_ENV"',
-            $workflow,
-        );
-        self::assertStringContainsString(
-            'if [[ "$ALLOW_INSECURE_FIXTURE" == "1" ]]',
-            $workflow,
-        );
-        self::assertStringContainsString('fixture_flags+=(--no-blocking)', $workflow);
-        self::assertStringContainsString('tools: composer:v2, phpunit:11', $workflow);
-        self::assertStringContainsString(
-            'composer create-project shopware/production "$SHOPWARE_PROJECT_ROOT" "$INTEGRATION_SHOPWARE_VERSION" "${fixture_flags[@]}"',
-            $workflow,
-        );
-        self::assertStringNotContainsString('composer --working-dir="$SHOPWARE_PROJECT_ROOT" require', $workflow);
-        self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION: ${{ matrix.expected_core_version }}', $workflow);
-        self::assertStringContainsString(
-            'SKYY_PHPUNIT_BINARY="$(command -v phpunit)"',
-            $workflow,
-        );
-        self::assertStringContainsString('COMPOSER_HOME="$RUNNER_TEMP/shopware-composer-home"', $workflow);
-        self::assertStringNotContainsString('COMPOSER_NO_BLOCKING:', $workflow);
-        self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ github.workspace }}', $workflow);
-        self::assertStringNotContainsString('SHOPWARE_PROJECT_ROOT: ${{ runner.temp }}', $workflow);
-
-        $integrationTest = (string) file_get_contents(
-            $this->projectRoot . '/tests/Integration/ShopwareIntegrationTest.php',
-        );
-        self::assertStringContainsString('InstalledVersions::getPrettyVersion', $integrationTest);
-        self::assertStringContainsString('EXPECTED_SHOPWARE_CORE_VERSION', $integrationTest);
-
-        $integrationRunner = (string) file_get_contents($this->projectRoot . '/bin/integration');
-        self::assertStringContainsString('SKYY_PHPUNIT_BINARY', $integrationRunner);
-        self::assertStringContainsString('SKYY_PLUGIN_RUNTIME_ROOT', $integrationRunner);
-        self::assertStringContainsString('"$ROOT/bin/package"', $integrationRunner);
-        self::assertStringContainsString('$SHOPWARE_PROJECT_ROOT/vendor/bin/phpunit', $integrationRunner);
-        self::assertStringNotContainsString('$ROOT/vendor/bin/phpunit', $integrationRunner);
-
-        $integrationBootstrap = (string) file_get_contents($this->projectRoot . '/tests/Integration/bootstrap.php');
-        self::assertStringContainsString('SKYY_PLUGIN_RUNTIME_ROOT', $integrationBootstrap);
-        self::assertStringContainsString('$runtimePluginRoot . \'/src\'', $integrationBootstrap);
     }
 
     public function testCheckUsesNormalComposerPublishValidation(): void
@@ -120,7 +79,7 @@ final class ReleaseToolingTest extends TestCase
         $output = [];
         $exitCode = 1;
         exec(
-            'VERSION=0.1.1 ' . escapeshellarg($this->projectRoot . '/bin/package') . ' 2>&1',
+            'VERSION=0.2.0 ' . escapeshellarg($this->projectRoot . '/bin/package') . ' 2>&1',
             $output,
             $exitCode,
         );
@@ -128,14 +87,14 @@ final class ReleaseToolingTest extends TestCase
 
         $archive = new ZipArchive();
         self::assertTrue(
-            $archive->open($this->projectRoot . '/build/SkyyMailTemplateSync-0.1.1.zip') === true,
+            $archive->open($this->projectRoot . '/build/SkyyMailTemplateSync-0.2.0.zip') === true,
         );
         $composerJson = $archive->getFromName('SkyyMailTemplateSync/composer.json');
         $archive->close();
         self::assertIsString($composerJson);
 
         $metadata = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
-        self::assertSame('0.1.1', $metadata['version'] ?? null);
+        self::assertSame('0.2.0', $metadata['version'] ?? null);
     }
 
     public function testReadmeDocumentsFiveFileLayoutAndNullableMetadata(): void
