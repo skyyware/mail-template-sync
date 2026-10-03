@@ -34,8 +34,8 @@ final class PluginMetadataTest extends TestCase
         );
         self::assertSame(
             [
-                'en-GB' => 'Skyy Mail Template Sync',
-                'de-DE' => 'Skyy Mail Template Sync',
+                'en-GB' => 'Mail Template Sync',
+                'de-DE' => 'Mail Template Sync',
             ],
             $composer['extra']['label'],
         );

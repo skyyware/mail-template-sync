@@ -1,6 +1,6 @@
-# Skyy Mail Template Sync
+# Mail Template Sync
 
-Skyy Mail Template Sync keeps Shopware mail templates in portable, reviewable
+Mail Template Sync keeps Shopware mail templates in portable, reviewable
 files. It supports Shopware 6.7 on PHP 8.2 or newer.
 
 ## Compatibility
@@ -117,7 +117,7 @@ bin/check
 
 `bin/check` validates Composer metadata, runs unit tests, PHPStan, the style
 check, Git whitespace checks, and package verification. `bin/package` creates
-`build/SkyyMailTemplateSync-0.2.0.zip` with a single
+`build/SkyyMailTemplateSync-0.2.1.zip` with a single
 `SkyyMailTemplateSync/` root and no development-only files.
 
 Run the real Shopware container and DAL transaction tests against an isolated

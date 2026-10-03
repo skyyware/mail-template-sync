@@ -79,7 +79,7 @@ final class ReleaseToolingTest extends TestCase
         $output = [];
         $exitCode = 1;
         exec(
-            'VERSION=0.2.0 ' . escapeshellarg($this->projectRoot . '/bin/package') . ' 2>&1',
+            'VERSION=0.2.1 ' . escapeshellarg($this->projectRoot . '/bin/package') . ' 2>&1',
             $output,
             $exitCode,
         );
@@ -87,14 +87,14 @@ final class ReleaseToolingTest extends TestCase
 
         $archive = new ZipArchive();
         self::assertTrue(
-            $archive->open($this->projectRoot . '/build/SkyyMailTemplateSync-0.2.0.zip') === true,
+            $archive->open($this->projectRoot . '/build/SkyyMailTemplateSync-0.2.1.zip') === true,
         );
         $composerJson = $archive->getFromName('SkyyMailTemplateSync/composer.json');
         $archive->close();
         self::assertIsString($composerJson);
 
         $metadata = json_decode($composerJson, true, 512, JSON_THROW_ON_ERROR);
-        self::assertSame('0.2.0', $metadata['version'] ?? null);
+        self::assertSame('0.2.1', $metadata['version'] ?? null);
     }
 
     public function testReadmeDocumentsFiveFileLayoutAndNullableMetadata(): void

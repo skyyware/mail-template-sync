@@ -34,8 +34,8 @@
     "shopware-plugin-class": "Skyyware\\SkyyMailTemplateSync\\SkyyMailTemplateSync",
     "plugin-icon": "src/Resources/config/plugin.png",
     "label": {
-      "en-GB": "Skyy Mail Template Sync",
-      "de-DE": "Skyy Mail Template Sync"
+      "en-GB": "Mail Template Sync",
+      "de-DE": "Mail Template Sync"
     },
     "manufacturerLink": {
       "en-GB": "https://www.skyyware.com/",

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.2.1 - 2026-10-03
+
+- Shorten the plugin title to Mail Template Sync in English and German.
+- Keep the Composer package, plugin identifier, commands and configuration keys unchanged.
+
 ## 0.2.0 - 2026-10-01
 
 - Support Shopware 6.7 only. Use `0.1.1` for existing Shopware 6.6 projects.
